@@ -5,6 +5,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "MyAnimInstance.h"
 
 // Sets default values
 AMyCharacter::AMyCharacter()
@@ -36,6 +37,9 @@ AMyCharacter::AMyCharacter()
 void AMyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	AnimInstance = Cast<UMyAnimInstance>(GetMesh()->GetAnimInstance());
+	AnimInstance->OnMontageEnded.AddDynamic(this, &AMyCharacter::OnAttackMontageEnded);
 	
 }
 
@@ -51,28 +55,31 @@ void AMyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Pressed, this, &AMyCharacter::Jump);
+	PlayerInputComponent->BindAction(TEXT("Attack"), EInputEvent::IE_Pressed, this, &AMyCharacter::Attack);
+
+
 	PlayerInputComponent->BindAxis(TEXT("UpDown"), this, &AMyCharacter::UpDown);
 	PlayerInputComponent->BindAxis(TEXT("LeftRight"), this, &AMyCharacter::LeftRight);
 	PlayerInputComponent->BindAxis(TEXT("Yaw"), this, &AMyCharacter::Yaw);
-
+	
 
 }
 
 void AMyCharacter::UpDown(float Value)
 {
-	if (Value == 0.f)
-		return;
-	// UE_LOG(LogTemp, Warning, TEXT("UpDown %f"), Value);
 
+	// UE_LOG(LogTemp, Warning, TEXT("UpDown %f"), Value);
+	UpDownValue = Value;
 	AddMovementInput(GetActorForwardVector(), Value);
 
 }
 
 void AMyCharacter::LeftRight(float Value)
 {
-	if (Value == 0.f)
-		return;
+	
 	// UE_LOG(LogTemp, Warning, TEXT("LeftRight %f"), Value);
+	LeftRightValue = Value;
 	AddMovementInput(GetActorRightVector(), Value);
 }
 
@@ -80,3 +87,22 @@ void AMyCharacter::Yaw(float Value)
 {
 	AddControllerYawInput(Value);
 }
+
+void AMyCharacter::Attack()
+{
+	if (isAttacking)
+		return;
+
+	AnimInstance->PlayAttackMontage();
+
+	AnimInstance->JumpToSection(AttackIndex);
+	AttackIndex = (AttackIndex + 1) % 3;
+	
+	isAttacking = true;
+}
+
+void AMyCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	isAttacking = false;
+}
+
