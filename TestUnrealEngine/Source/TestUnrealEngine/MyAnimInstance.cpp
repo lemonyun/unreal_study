@@ -46,7 +46,8 @@ void UMyAnimInstance::PlayAttackMontage()
 
 void UMyAnimInstance::AnimNotify_AttackHit()
 {
-	UE_LOG(LogTemp, Log, TEXT("AnimNotify_AttackHit"));
+	//UE_LOG(LogTemp, Log, TEXT("AnimNotify_AttackHit"));
+	OnAttackHit.Broadcast();
 }
 
 FName UMyAnimInstance::GetAttackMontageName(int32 SectionIndex)
