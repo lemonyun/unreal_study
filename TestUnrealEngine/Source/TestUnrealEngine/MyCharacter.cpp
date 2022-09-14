@@ -11,6 +11,7 @@
 #include "MyStatComponent.h"
 #include "Components/WidgetComponent.h"
 #include "MyCharacterWidget.h"
+#include "MyAIController.h"
 
 // Sets default values
 AMyCharacter::AMyCharacter()
@@ -52,7 +53,8 @@ AMyCharacter::AMyCharacter()
 	}
 
 
-
+	AIControllerClass = AMyAIController::StaticClass();
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
 void AMyCharacter::BeginPlay()
@@ -153,6 +155,7 @@ void AMyCharacter::Attack()
 void AMyCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
 	isAttacking = false;
+	OnAttackEnd.Broadcast();
 }
 
 void AMyCharacter::AttackCheck()
